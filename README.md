@@ -1,148 +1,140 @@
 
-# Inmovilla API Proxy (Unofficial)
+# Inmovilla API Client Bundle
 
 [![Latest Version](https://img.shields.io/badge/version-1.0.0-blue)]()
 [![PHP](https://img.shields.io/badge/php-%5E7.4%20%7C%7C%20%5E8.0-blue)]()
+[![Symfony](https://img.shields.io/badge/symfony-%5E5.4%20%7C%7C%20%5E6.0-green)]()
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-`inmovilla-api-proxy` is a tool designed to solve a specific problem when interacting with the Inmovilla API: **IP-based access restrictions**.
+`inmovilla-api-client-bundle` is a Symfony package designed to integrate and simplify the use of the [`inmovilla-api-client`](https://github.com/inigo-aldama/inmovilla-api-client) library within Symfony applications. It provides simplified configuration and pre-configured services to interact with the Inmovilla API.
 
-> **Note:** This project is not affiliated with, endorsed by, or maintained by Inmovilla.
-
-
-## Why Use Inmovilla API Proxy?
-
-Inmovilla restricts access to their API to specific IP addresses. This becomes a problem when you're developing from a machine outside the allowed IP range. Here's how the situation looks:
-
-- **Production server with `inmovilla-api-client` installed**  
-  ✅ Can connect to the Inmovilla API (IP is allowed).
-
-- **Development machine with `inmovilla-api-client` installed**  
-  ❌ Cannot connect to the Inmovilla API (IP is not allowed).
-
-This package solves the issue by enabling the production server to act as a proxy. With `inmovilla-api-proxy` installed on the production server:
-
-1. Your development machine sends requests to the **production server** (acting as the proxy).
-2. The production server forwards these requests to the Inmovilla API.
-3. The response from the Inmovilla API is sent back to your development machine.
+> **Note:** This project is not affiliated with Inmovilla.
 
 ---
 
-## How It Works
+## Features
 
-Here’s a visual representation of the interaction flow between the Development Server, Production Server, and the Inmovilla API:
-
-![UML Diagram](https://www.plantuml.com/plantuml/png/TO-nJiD0343tV8NL2GJvWGwe88Je5a575YldmTB5T_YS5FuULwTKH4dNytlFlaCnL1k7s1XR93YAaM9ld0HUoCv40gyqKKnv837u99r87w7J5CQApKyemVKXJHmZmdDtR9hiRUuvevkxTUPBxdWMMipSzf5zUhy3BE1ufPQLrU9L96lw-OK7k9s-DBRQY-ilPFt5zH9ed_wvUtW_dJhueE-HYZNpe68kxk4jwHarKBX2_WpjTgNa98KM6GTzzpPt80dZ4Fy0)
-
-
-### Production Server
-- **`inmovilla-api-client`** is installed to send API requests to Inmovilla.
-- **`inmovilla-api-proxy`** is installed to act as a proxy for requests from the development machine.
-
-### Development Machine
-- **`inmovilla-api-client`** is installed to send requests to the proxy on the production server.
-
-### Example Flow
-1. **Without Proxy**
-    - Development server → Direct connection to Inmovilla API → ❌ IP not allowed.
-
-2. **With Proxy**
-    - Development server → Proxy on production server → Inmovilla API → ✅ Works.
+- Direct integration with `inmovilla-api-client`.
+- Simplified configuration through Symfony configuration files.
+- Ready-to-use dependency injection for services and controllers.
+- Predefined repositories for entities like cities, zones, and properties.
 
 ---
 
 ## Requirements
 
 - **PHP**: 7.4 or higher.
+- **Symfony**: 5.4 or higher.
 - **Composer**: For dependency management.
-- Libraries:
-    - [`inigo-aldama/inmovilla-api-client`](https://packagist.org/packages/inigo-aldama/inmovilla-api-client)
 
 ---
 
 ## Installation
 
-1. **Install the Proxy on the Production Server**
-   Clone the repository or use Composer:
-   ```bash
-   composer require inigo-aldama/inmovilla-api-proxy
-   ```
+Install the package using Composer:
+```bash
+composer require inigo-aldama/inmovilla-api-client-bundle
+```
 
-2. **Configure API Credentials**
-   Update the `api.ini` configuration file on both servers (development and production):
+Register the bundle automatically (Symfony Flex will handle it by default) or add it manually in `config/bundles.php`:
+```php
+return [
+    // Other bundles...
+    Inmovilla\ApiClientBundle\InmovillaApiClientBundle::class => ['all' => true],
+];
+```
 
-   **`api.ini` on the production server:**
-   ```ini
-   api_url = "https://api.inmovilla.com/v1"
-   domain = "production-domain.com"
-   agency = "production-agency"
-   password = "production-password"
-   language = 1
-   ```
+---
 
-   **`api.ini` on the development server:**
-   ```ini
-   api_url = "http://production-server-url/api-proxy"
-   domain = "production-domain.com"
-   agency = "development-agency"
-   password = "development-password"
-   language = 1
-   ```
+## Configuration
+
+Configure the API parameters in the `config/services.yaml` file or `.env`:
+
+### YAML Configuration
+```yaml
+parameters:
+    inmovilla.api_client:
+        API_URL: "https://api.inmovilla.com/v1"
+        DOMAIN: "example.com"
+        AGENCY: "my-agency"
+        PASSWORD: "my-password"
+        LANGUAGE: 1
+```
+
+### .env Configuration
+```env
+INMOVILLA_API_URL="https://api.inmovilla.com/v1"
+INMOVILLA_DOMAIN="example.com"
+INMOVILLA_AGENCY="my-agency"
+INMOVILLA_PASSWORD="my-password"
+INMOVILLA_LANGUAGE=1
+```
+
+The `inmovilla.api_client_config` service will be created automatically with this configuration.
 
 ---
 
 ## Usage
 
-1. **On the Production Server**
-   Deploy `inmovilla-api-proxy` with the following setup:
-   ```php
-   <?php
+### Repository Injection
 
-   require 'vendor/autoload.php';
+Repositories are ready to use in your services and controllers:
+```php
+namespace App\Controller;
 
-   use Inmovilla\ApiClient\ApiClientConfig;
-   use Inmovilla\Proxy\ProxyService;
-   use GuzzleHttp\Client as GuzzleClient;
-   use GuzzleHttp\Psr7\HttpFactory;
+use Inmovilla\Repository\CiudadRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
-   $serverConfig = ApiClientConfig::fromIniFile(__DIR__ . '/config/api.ini');
-   $httpClient = new GuzzleClient();
-   $requestFactory = new HttpFactory();
+class MyController extends AbstractController
+{
+    private CiudadRepository $ciudadRepository;
 
-   $proxyService = new ProxyService($httpClient, $requestFactory, $serverConfig);
+    public function __construct(CiudadRepository $ciudadRepository)
+    {
+        $this->ciudadRepository = $ciudadRepository;
+    }
 
-   $input = file_get_contents('php://input');
-   $response = $proxyService->handleRequest($input);
+    public function index()
+    {
+        $cities = $this->ciudadRepository->findAll();
+        // Do something with the cities
+    }
+}
+```
 
-   header('Content-Type: application/json');
-   echo json_encode($response);
-   ```
+### Customizing Repositories
 
-2. **On the Development Machine**
-   Configure `api_url` to point to the production server's proxy, and use `inmovilla-api-client` as usual.
+You can extend existing repositories to add specific logic:
+```php
+namespace App\Repository;
+
+use Inmovilla\Repository\PropiedadRepository;
+
+class CustomPropertyRepository extends PropiedadRepository
+{
+    public function findWithGarage(): array
+    {
+        return $this->findBy(['garage' => true]);
+    }
+}
+```
 
 ---
 
-## Key Points
+## Available Services
 
-- The **proxy must be installed on the production server**; it's not needed on the development machine.
-- The `api.ini` configuration must exist on both servers:
-    - The **production server** uses the real Inmovilla API URL.
-    - The **development machine** points `api_url` to the proxy URL.
-
-### Data Sent to Inmovilla API
-When using the proxy, the following data is sent to Inmovilla:
-- **`api_url`**: From the production server.
-- **`domain`**: From the production server.
-- **`agency`**: From the development machine.
-- **`password`**: From the development machine.
-- **`language`**: From the development machine.
+The following services are available in the container:
+- `Inmovilla\ApiClient\ApiClientInterface`: Main API client.
+- `Inmovilla\Repository\CiudadRepository`: Repository for cities.
+- `Inmovilla\Repository\ZonaRepository`: Repository for zones.
+- `Inmovilla\Repository\PropiedadRepository`: Repository for properties.
+- `Inmovilla\Repository\PropiedadFichaRepository`: Repository for property details.
 
 ---
 
 ## Testing
 
-Run PHPUnit tests to validate functionality:
+Run the tests to validate the bundle:
 ```bash
 ./vendor/bin/phpunit --testdox
 ```
@@ -168,4 +160,4 @@ This project is licensed under the [MIT License](LICENSE).
 ## Credits
 
 - **Author**: Iñigo Aldama Gómez
-- **Inmovilla API Client Repository**: [inmovilla-api-client](https://github.com/inigo-aldama/inmovilla-api-client)
+- **Repository**: [inmovilla-api-client-bundle](https://github.com/inigo-aldama/inmovilla-api-client-bundle)
