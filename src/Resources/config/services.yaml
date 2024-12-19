@@ -1,0 +1,43 @@
+services:
+
+  # Repositorios de Inmovilla
+  Inmovilla\ApiClient\ApiClientInterface:
+    alias: Inmovilla\ApiClient\ApiClient
+
+  Inmovilla\Repository\CiudadRepository:
+    arguments:
+      $client: '@Inmovilla\ApiClient\ApiClientInterface'
+
+  Inmovilla\Repository\ZonaRepository:
+    arguments:
+      $client: '@Inmovilla\ApiClient\ApiClientInterface'
+
+  Inmovilla\Repository\PropiedadRepository:
+    arguments:
+      $client: '@Inmovilla\ApiClient\ApiClientInterface'
+
+  Inmovilla\Repository\PropiedadFichaRepository:
+    arguments:
+      $client: '@Inmovilla\ApiClient\ApiClientInterface'
+
+  # Otros servicios existentes
+  Inmovilla\ApiClient\ApiClient:
+    factory: [ 'Inmovilla\ApiClient\ApiClientFactory', 'createFromConfig' ]
+    arguments:
+      - '@inmovilla.api_client_config'
+      - '@guzzle.client'
+      - '@php_http.http_factory'
+
+  inmovilla.api_client_config:
+    class: Inmovilla\ApiClient\ApiClientConfig
+    factory: [ 'Inmovilla\ApiClient\ApiClientConfig', 'fromArray' ]
+    arguments:
+      - '%inmovilla.api_client%'
+
+  # Configuración del cliente HTTP (Guzzle)
+  guzzle.client:
+    class: GuzzleHttp\Client
+
+  # Configuración de la fábrica de solicitudes HTTP (PSR-17)
+  php_http.http_factory:
+    class: GuzzleHttp\Psr7\HttpFactory
