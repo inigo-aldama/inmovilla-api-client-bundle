@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": "^7.4 || ^8.0",
-    "inigo-aldama/inmovilla-api-client": "*",
+    "inigo-aldama/inmovilla-api-client": "^1.0",
     "symfony/framework-bundle": "^5.4 || ^6.0"
   },
   "autoload": {

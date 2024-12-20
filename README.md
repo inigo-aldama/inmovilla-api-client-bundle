@@ -51,17 +51,18 @@ return [
 Configure the API parameters in the `config/services.yaml` file or `.env`:
 
 ### YAML Configuration
+Add the following parameters in `config/packages/inmovilla_api_client.yaml`:
 ```yaml
-parameters:
-    inmovilla.api_client:
-        API_URL: "https://api.inmovilla.com/v1"
-        DOMAIN: "example.com"
-        AGENCY: "my-agency"
-        PASSWORD: "my-password"
-        LANGUAGE: 1
+inmovilla_api_client:
+    api_url: "https://api.inmovilla.com/v1"
+    domain: "your-domain.com"
+    agency: "your-agency"
+    password: "your-password"
+    language: 1
 ```
 
 ### .env Configuration
+Alternatively, use environment variables in `.env`:
 ```env
 INMOVILLA_API_URL="https://api.inmovilla.com/v1"
 INMOVILLA_DOMAIN="example.com"
