@@ -22,7 +22,10 @@
   "extra": {
     "symfony": {
       "allow-contrib": true,
-      "require": "5.4.* || 6.0.*"
+      "require": "5.4.* || 6.0.*",
+      "endpoint": {
+        "custom-recipes": "https://github.com/inigo-aldama/inmovilla-symfony-recipes"
+      }
     }
   },
   "require-dev": {
