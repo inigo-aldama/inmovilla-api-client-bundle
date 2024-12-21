@@ -23,9 +23,10 @@
     "symfony": {
       "allow-contrib": true,
       "require": "5.4.* || 6.0.*",
-      "endpoint": {
-        "custom-recipes": "https://github.com/inigo-aldama/inmovilla-symfony-recipes"
-      }
+      "endpoint": [
+        "flex://defaults",
+        "https://api.github.com/repos/inigo-aldama/inmovilla-symfony-recipes/contents/"
+      ]
     }
   },
   "require-dev": {
